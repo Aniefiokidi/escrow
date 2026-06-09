@@ -1,0 +1,40 @@
+# Node
+node_modules/
+
+# Env files
+.env
+**/.env
+backend/.env
+frontend/.env
+
+# Logs
+npm-debug.log*
+
+# Build output
+frontend/dist/
+
+# Uploads (runtime evidence)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+
+# Django generated
+escrow_project/media/
+escrow_project/db.sqlite3
+
+# Claude Code
+.claude/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

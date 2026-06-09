@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">All Notifications</h3>
+    {% if notifications %}
+    <button class="btn btn--ghost btn--sm" id="markAllRead">Mark all as read</button>
+    {% endif %}
+  </div>
+  {% if notifications %}
+  <div class="notifications-list">
+    {% for n in notifications %}
+    <div class="notif-item {% if not n.is_read %}notif-item--unread{% endif %}" data-id="{{ n.pk }}">
+      <div class="notif-body">
+        <strong class="notif-title">{{ n.title }}</strong>
+        <p class="notif-msg">{{ n.message }}</p>
+        <span class="notif-time">{{ n.sent_at|timesince }} ago</span>
+        {% if n.related_transaction %}
+        <a href="{% url 'transactions:detail' uuid=n.related_transaction.transaction_id %}" class="notif-link">
+          View {{ n.related_transaction.reference }}
+        </a>
+        {% endif %}
+      </div>
+      {% if not n.is_read %}
+      <button class="btn btn--ghost btn--sm mark-read" data-id="{{ n.pk }}">Mark read</button>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p>No notifications yet. Activity on your transactions and disputes will appear here.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1];
+
+document.querySelectorAll('.mark-read').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    fetch(`/notifications/${id}/read/`, { method: 'POST', headers: { 'X-CSRFToken': csrfToken } })
+      .then(() => {
+        btn.closest('.notif-item').classList.remove('notif-item--unread');
+        btn.remove();
+      });
+  });
+});
+
+const markAll = document.getElementById('markAllRead');
+if (markAll) {
+  markAll.addEventListener('click', () => {
+    fetch('/notifications/read-all/', { method: 'POST', headers: { 'X-CSRFToken': csrfToken } })
+      .then(() => {
+        document.querySelectorAll('.notif-item--unread').forEach(el => el.classList.remove('notif-item--unread'));
+        document.querySelectorAll('.mark-read').forEach(el => el.remove());
+      });
+  });
+}
+</script>
+{% endblock %}

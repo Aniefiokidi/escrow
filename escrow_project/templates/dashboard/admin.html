@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block content %}
+
+<div class="stats-row">
+  <div class="stat-card stat-card--navy">
+    <div class="stat-body">
+      <div class="stat-value">{{ total_transactions }}</div>
+      <div class="stat-label">Total Transactions</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="layers"></i></div>
+  </div>
+  <div class="stat-card stat-card--gold">
+    <div class="stat-body">
+      <div class="stat-value" style="font-size:1.3rem;">&#8358;{{ total_in_escrow|floatformat:2 }}</div>
+      <div class="stat-label">Held in Escrow</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="vault"></i></div>
+  </div>
+  <div class="stat-card {% if open_disputes > 0 %}stat-card--alert{% endif %}">
+    <div class="stat-body">
+      <div class="stat-value">{{ open_disputes }}</div>
+      <div class="stat-label">Open Disputes</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="scale"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-body">
+      <div class="stat-value">{{ total_users }}</div>
+      <div class="stat-label">Registered Users</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="users-round"></i></div>
+  </div>
+</div>
+
+{% if disputes %}
+<div class="card">
+  <h3 class="card-title">Open Disputes &mdash; Action Required</h3>
+  <div class="disputes-panel">
+    {% for d in disputes %}
+    <div class="dispute-row {% if d.hours_remaining < 24 %}dispute-row--urgent{% endif %}">
+      <div class="dispute-info">
+        <span class="dispute-ref">{{ d.transaction.reference }}</span>
+        <span class="dispute-reason">{{ d.reason|truncatechars:80 }}</span>
+        <span class="dispute-by">Raised by: {{ d.raised_by.email }}</span>
+      </div>
+      <div class="dispute-meta">
+        <span class="deadline-timer {% if d.hours_remaining < 24 %}deadline--red{% endif %}"
+              data-deadline="{{ d.resolution_deadline|date:'c' }}">
+          {{ d.hours_remaining|floatformat:0 }}m remaining
+        </span>
+        <a href="{% url 'disputes:detail' uuid=d.dispute_id %}" class="btn btn--outline btn--sm">Review</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">All Transactions</h3>
+    <form class="filter-form" method="get">
+      <input type="text" name="q" value="{{ search|default:'' }}"
+             placeholder="Search reference, title, email..." class="search-input">
+      <select name="status" class="select-input">
+        <option value="">All Statuses</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn--primary btn--sm">Filter</button>
+    </form>
+  </div>
+  {% include "transactions/_table.html" with transactions=recent_transactions show_admin_cols=True %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('[data-deadline]').forEach(el => {
+  const deadline = new Date(el.dataset.deadline);
+  function tick() {
+    const diff = deadline - new Date();
+    if (diff <= 0) { el.textContent = 'OVERDUE'; el.classList.add('deadline--red'); return; }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = h > 0 ? `${h}h ${m}m remaining` : `${m}m ${s}s remaining`;
+  }
+  tick();
+  setInterval(tick, 1000);
+});
+</script>
+{% endblock %}

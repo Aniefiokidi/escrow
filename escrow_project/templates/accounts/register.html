@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+{% block auth_content %}
+<div class="auth-card auth-card--wide">
+  <h1 class="auth-title">Create Account</h1>
+  <p class="auth-sub">Join EscrowNG &mdash; Nigeria's trusted digital escrow platform</p>
+  <form method="post" class="auth-form">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+      {% if field.errors %}<span class="field-error">{{ field.errors.0 }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn--primary btn--full btn--lg">Create Account</button>
+  </form>
+  <p class="auth-link">Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a></p>
+</div>
+{% endblock %}

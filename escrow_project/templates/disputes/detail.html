@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Dispute {{ dispute.dispute_id|stringformat:"s"|slice:":8" }}{% endblock %}
+{% block page_title %}Dispute &mdash; {{ txn.reference }}{% endblock %}
+{% block content %}
+
+<div class="detail-grid">
+  <!-- Dispute Info -->
+  <div class="card">
+    <h3 class="card-heading">Dispute Details</h3>
+    <dl class="detail-list">
+      <dt>ID</dt>
+      <dd><code class="mono">{{ dispute.dispute_id }}</code></dd>
+      <dt>Status</dt>
+      <dd><span class="status-badge status--{{ dispute.status|lower }}">{{ dispute.get_status_display }}</span></dd>
+      <dt>Raised By</dt>
+      <dd>{{ dispute.raised_by.email }}</dd>
+      <dt>Raised At</dt>
+      <dd>{{ dispute.raised_at|date:"F j, Y, g:i A" }}</dd>
+      <dt>Deadline</dt>
+      <dd>
+        <span class="deadline-timer {% if dispute.hours_remaining < 24 %}deadline--red{% endif %}"
+              data-deadline="{{ dispute.resolution_deadline|date:'c' }}">
+          {{ dispute.resolution_deadline|date:"F j, Y, g:i A" }}
+        </span>
+        {% if dispute.is_overdue %}<span class="badge badge--red" style="margin-left:.4rem;">Overdue</span>{% endif %}
+      </dd>
+    </dl>
+  </div>
+
+  <!-- Transaction Summary -->
+  <div class="card">
+    <h3 class="card-heading">Transaction</h3>
+    <dl class="detail-list">
+      <dt>Reference</dt>
+      <dd><code class="mono">{{ txn.reference }}</code></dd>
+      <dt>Title</dt>
+      <dd>{{ txn.title }}</dd>
+      <dt>Amount</dt>
+      <dd class="amount--large">&#8358;{{ txn.amount|floatformat:2 }}</dd>
+      <dt>Buyer</dt>
+      <dd>{{ txn.buyer.email }}</dd>
+      <dt>Seller</dt>
+      <dd>{{ txn.seller.email }}</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- Split view: Reason + Evidence -->
+<div class="dispute-split">
+  <div class="card">
+    <h3 class="card-heading">Reason for Dispute</h3>
+    <div class="dispute-reason-body">{{ dispute.reason }}</div>
+  </div>
+
+  {% if dispute.evidence_file %}
+  <div class="card">
+    <h3 class="card-heading">Evidence Submitted</h3>
+    <div class="evidence-viewer">
+      {% if dispute.evidence_file.name|lower|slice:"-4:" == ".pdf" %}
+        <a href="{{ dispute.evidence_file.url }}" target="_blank" class="btn btn--outline">View PDF Evidence</a>
+      {% else %}
+        <img src="{{ dispute.evidence_file.url }}" alt="Evidence" class="evidence-img">
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Admin Resolution Panel -->
+{% if user.role == 'ADMIN' or user.is_superuser %}
+  {% if dispute.status != 'RESOLVED' %}
+  <div class="card resolution-panel">
+    <h3 class="card-heading">Admin Resolution</h3>
+    <form method="post" action="{% url 'disputes:resolve' uuid=dispute.dispute_id %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Resolution Decision</label>
+        <div class="resolution-options">
+          <label class="radio-option">
+            <input type="radio" name="resolution" value="RELEASE" required>
+            <span>Release funds to seller — seller fulfilled the obligation</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="resolution" value="REFUND">
+            <span>Refund buyer — seller did not fulfil the obligation</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="resolution" value="PARTIAL">
+            <span>Partial release — split 50/50 between both parties</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="notes">Resolution Notes</label>
+        <textarea name="notes" id="notes" rows="4"
+          placeholder="Provide a clear explanation of your decision..." class="textarea"></textarea>
+      </div>
+      <button type="submit" class="btn btn--primary">Submit Resolution</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="card">
+    <h3 class="card-heading">Resolution</h3>
+    <dl class="detail-list">
+      <dt>Decision</dt><dd>{{ dispute.get_resolution_display }}</dd>
+      <dt>Resolved By</dt><dd>{{ dispute.resolved_by.email }}</dd>
+      <dt>Resolved At</dt><dd>{{ dispute.resolved_at|date:"F j, Y, g:i A" }}</dd>
+      <dt>Notes</dt><dd>{{ dispute.resolution_notes }}</dd>
+    </dl>
+  </div>
+  {% endif %}
+{% elif dispute.status == 'RESOLVED' %}
+<div class="card">
+  <h3 class="card-heading">Resolution</h3>
+  <dl class="detail-list">
+    <dt>Decision</dt><dd>{{ dispute.get_resolution_display }}</dd>
+    <dt>Notes</dt><dd>{{ dispute.resolution_notes }}</dd>
+  </dl>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block extra_js %}
+<script>
+const el = document.querySelector('[data-deadline]');
+if (el) {
+  const deadline = new Date(el.dataset.deadline);
+  function tick() {
+    const diff = deadline - new Date();
+    if (diff <= 0) { el.textContent = 'OVERDUE'; el.classList.add('deadline--red'); return; }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = h > 0 ? `${h}h ${m}m remaining` : `${m}m ${s}s remaining`;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+</script>
+{% endblock %}

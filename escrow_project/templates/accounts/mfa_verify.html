@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Two-Factor Authentication{% endblock %}
+{% block auth_content %}
+<div class="auth-card">
+  <h1 class="auth-title">Two-Factor Authentication</h1>
+  <p class="auth-sub">Enter the 6-digit code from your authenticator app to complete sign in</p>
+  <form method="post" class="auth-form">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="{{ form.token.id_for_label }}">{{ form.token.label }}</label>
+      {{ form.token }}
+      {% if form.token.errors %}<span class="field-error">{{ form.token.errors.0 }}</span>{% endif %}
+    </div>
+    <button type="submit" class="btn btn--primary btn--full btn--lg">Verify</button>
+  </form>
+</div>
+{% endblock %}

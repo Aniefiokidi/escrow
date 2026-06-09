@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Buyer Dashboard{% endblock %}
+{% block page_title %}Buyer Dashboard{% endblock %}
+{% block content %}
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-body">
+      <div class="stat-value">{{ pending }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="file-clock"></i></div>
+  </div>
+  <div class="stat-card stat-card--navy">
+    <div class="stat-body">
+      <div class="stat-value">{{ in_escrow }}</div>
+      <div class="stat-label">In Escrow</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="vault"></i></div>
+  </div>
+  <div class="stat-card stat-card--success">
+    <div class="stat-body">
+      <div class="stat-value">{{ completed }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="badge-check"></i></div>
+  </div>
+</div>
+
+{% if pending_confirm %}
+<div class="card alert-card">
+  <h3 class="card-heading">Awaiting Your Confirmation</h3>
+  <p style="font-size:.83rem;color:var(--grey-600);margin-bottom:.75rem;">
+    The following transactions have been marked as delivered and require your receipt confirmation.
+  </p>
+  {% for txn in pending_confirm %}
+  <div class="alert-item">
+    <span>
+      <code class="mono">{{ txn.reference }}</code>
+      <span style="margin:0 .4rem;color:var(--grey-400);">&mdash;</span>
+      {{ txn.title }}
+    </span>
+    <a href="{% url 'transactions:detail' uuid=txn.transaction_id %}" class="btn btn--gold btn--sm">Review</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Recent Transactions</h3>
+    <a href="{% url 'transactions:create' %}" class="btn btn--primary btn--sm">New Transaction</a>
+  </div>
+  {% include "transactions/_table.html" with transactions=transactions %}
+  <a href="{% url 'transactions:list' %}" class="view-all">View all transactions &rarr;</a>
+</div>
+{% endblock %}

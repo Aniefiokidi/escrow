@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}EscrowNG{% endblock %} — EscrowNG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <a href="{% url 'dashboard:index' %}" class="sidebar-brand">
+      <span class="brand-icon"><i data-lucide="shield-check"></i></span>
+      <span class="brand-text"><span class="brand-main">Escrow</span><span class="brand-accent">NG</span></span>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a href="{% url 'dashboard:index' %}" class="nav-item {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+        Dashboard
+      </a>
+
+      {% if user.role == 'BUYER' or user.is_superuser %}
+      <a href="{% url 'transactions:create' %}" class="nav-item {% if request.resolver_match.url_name == 'create' %}active{% endif %}">
+        <span class="nav-icon"><i data-lucide="plus-circle"></i></span>
+        New Transaction
+      </a>
+      {% endif %}
+
+      <a href="{% url 'transactions:list' %}" class="nav-item {% if request.resolver_match.namespace == 'transactions' and request.resolver_match.url_name != 'create' %}active{% endif %}">
+        <span class="nav-icon"><i data-lucide="receipt-text"></i></span>
+        Transactions
+      </a>
+
+      {% if user.role == 'ADMIN' or user.is_superuser %}
+      <a href="{% url 'dashboard:admin' %}" class="nav-item {% if request.resolver_match.url_name == 'admin' %}active{% endif %}">
+        <span class="nav-icon"><i data-lucide="sliders-horizontal"></i></span>
+        Admin Panel
+      </a>
+      {% endif %}
+
+      <a href="{% url 'notifications:list' %}" class="nav-item {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">
+        <span class="nav-icon"><i data-lucide="bell"></i></span>
+        Notifications
+        {% if unread_count %}<span class="nav-badge">{{ unread_count }}</span>{% endif %}
+      </a>
+
+      <a href="{% url 'accounts:profile' %}" class="nav-item {% if request.resolver_match.namespace == 'accounts' and request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <span class="nav-icon"><i data-lucide="user-circle"></i></span>
+        Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar">{{ user.get_initials }}</div>
+        <div>
+          <div class="sidebar-user-name">{{ user.full_name|default:user.email|truncatechars:22 }}</div>
+          <div class="sidebar-user-role">{{ user.get_role_display }}</div>
+        </div>
+      </div>
+      <form action="{% url 'accounts:logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">
+          <i data-lucide="log-out"></i>
+          Sign Out
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-wrap">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Toggle menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="topbar-left">
+        <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+      </div>
+      <div class="topbar-right">
+        <a href="{% url 'notifications:list' %}" class="notif-bell" title="Notifications">
+          <i data-lucide="bell"></i>
+          {% if unread_count %}<span class="notif-badge">{{ unread_count }}</span>{% endif %}
+        </a>
+        <div class="topbar-divider"></div>
+        <div class="user-chip">
+          <div class="avatar">{{ user.get_initials }}</div>
+          <div class="user-info">
+            <span class="user-name">{{ user.full_name|default:user.email|truncatechars:20 }}</span>
+            <span class="user-role">{{ user.get_role_display }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      {% if messages %}
+      <div class="flash-area">
+        {% for msg in messages %}
+        <div class="flash flash--{{ msg.tags }}">
+          <span>{{ msg }}</span>
+          <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="page-footer">
+      EscrowNG &mdash; Secure Escrow Payment System &copy; 2026 &middot; Covenant University Final Year Project
+    </footer>
+  </div>
+</div>
+
+{% else %}
+<div class="auth-layout">
+  <div class="auth-brand">
+    <span class="auth-brand-icon"><i data-lucide="shield-check"></i></span>
+    <span class="auth-brand-text"><span class="brand-main">Escrow</span><span class="brand-accent">NG</span></span>
+  </div>
+
+  {% if messages %}
+  <div class="flash-area flash-area--auth">
+    {% for msg in messages %}
+    <div class="flash flash--{{ msg.tags }}">
+      <span>{{ msg }}</span>
+      <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block auth_content %}{% endblock %}
+</div>
+{% endif %}
+
+{% load static %}
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+<script>
+  lucide.createIcons({
+    attrs: { 'stroke-width': '1.75', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }
+  });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

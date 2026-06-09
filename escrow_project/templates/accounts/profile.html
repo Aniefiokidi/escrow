@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+<div class="page-grid">
+  <div class="card">
+    <h2 class="card-heading">Account Information</h2>
+    <div class="profile-meta">
+      <div class="avatar avatar--lg">{{ user.get_initials }}</div>
+      <div>
+        <p class="profile-email">{{ user.email }}</p>
+        <span class="role-badge role-badge--{{ user.role|lower }}">{{ user.get_role_display }}</span>
+        {% if user.is_verified %}<span class="verified-badge">Verified</span>{% endif %}
+      </div>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="profile-form">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<span class="field-error">{{ field.errors.0 }}</span>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn--primary">Save Changes</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 class="card-heading">Security</h2>
+    <div class="security-item">
+      <div>
+        <div class="security-label">Two-Factor Authentication</div>
+        <div class="security-desc">
+          {% if user.mfa_enabled %}
+            MFA is active on your account. Your login is protected by a TOTP authenticator app.
+          {% else %}
+            Add an extra layer of security to your account with an authenticator app.
+          {% endif %}
+        </div>
+      </div>
+      {% if user.mfa_enabled %}
+        <span class="badge badge--green">Enabled</span>
+      {% else %}
+        <a href="{% url 'accounts:mfa_setup' %}" class="btn btn--outline btn--sm">Enable MFA</a>
+      {% endif %}
+    </div>
+    <div class="security-item">
+      <div>
+        <div class="security-label">Member Since</div>
+        <div class="security-desc">{{ user.created_at|date:"F j, Y" }}</div>
+      </div>
+    </div>
+    <div class="security-item">
+      <div>
+        <div class="security-label">Last Login</div>
+        <div class="security-desc">{{ user.last_login|date:"F j, Y, g:i A"|default:"—" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

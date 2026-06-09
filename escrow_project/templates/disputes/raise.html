@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Raise Dispute{% endblock %}
+{% block page_title %}Raise Dispute &mdash; {{ txn.reference }}{% endblock %}
+{% block content %}
+<div class="card form-card">
+  <h2 class="card-heading">File a Dispute</h2>
+  <div class="dispute-context">
+    <dl class="detail-list detail-list--inline">
+      <dt>Transaction</dt>
+      <dd><code class="mono">{{ txn.reference }}</code> &mdash; {{ txn.title }}</dd>
+      <dt>Amount</dt>
+      <dd>&#8358;{{ txn.amount|floatformat:2 }}</dd>
+      <dt>Status</dt>
+      <dd><span class="status-badge status--{{ txn.status|lower }}">{{ txn.get_status_display }}</span></dd>
+    </dl>
+  </div>
+  <form method="post" enctype="multipart/form-data" class="dispute-form">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="reason">Reason for Dispute <span class="required">*</span></label>
+      <textarea name="reason" id="reason" rows="6"
+        placeholder="Describe clearly what went wrong. Include specific dates, amounts, and what the seller failed to deliver. The more detail you provide, the faster the dispute can be resolved."
+        required class="textarea"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="evidence_file">Supporting Evidence (optional)</label>
+      <input type="file" name="evidence_file" id="evidence_file"
+             accept=".pdf,.jpg,.jpeg,.png" class="file-input">
+      <small class="field-help">Accepted formats: PDF, JPG, PNG. Maximum file size: 5 MB.</small>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn--danger">Submit Dispute</button>
+      <a href="{% url 'transactions:detail' uuid=txn.transaction_id %}" class="btn btn--ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

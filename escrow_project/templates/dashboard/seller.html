@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Seller Dashboard{% endblock %}
+{% block page_title %}Seller Dashboard{% endblock %}
+{% block content %}
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-body">
+      <div class="stat-value">{{ pending }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="file-clock"></i></div>
+  </div>
+  <div class="stat-card stat-card--navy">
+    <div class="stat-body">
+      <div class="stat-value">{{ in_escrow }}</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="vault"></i></div>
+  </div>
+  <div class="stat-card stat-card--success">
+    <div class="stat-body">
+      <div class="stat-value">{{ completed }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="badge-check"></i></div>
+  </div>
+  <div class="stat-card stat-card--gold">
+    <div class="stat-body">
+      <div class="stat-value" style="font-size:1.3rem;">&#8358;{{ total_earned|floatformat:2 }}</div>
+      <div class="stat-label">Total Earned</div>
+    </div>
+    <div class="stat-icon-box"><i data-lucide="banknote"></i></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Recent Transactions</h3>
+  </div>
+  {% include "transactions/_table.html" with transactions=transactions %}
+  <a href="{% url 'transactions:list' %}" class="view-all">View all transactions &rarr;</a>
+</div>
+{% endblock %}

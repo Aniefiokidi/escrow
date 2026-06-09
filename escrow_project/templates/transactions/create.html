@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}New Transaction{% endblock %}
+{% block page_title %}New Escrow Transaction{% endblock %}
+{% block content %}
+<div class="card form-card">
+  <h2 class="card-heading">Transaction Details</h2>
+  <p class="form-intro">
+    Funds will be held securely in escrow and released to the seller only after you confirm receipt of the goods or services.
+  </p>
+  <form method="post" class="transaction-form">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+      {% if field.errors %}<span class="field-error">{{ field.errors.0 }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">Create Transaction &amp; Initiate Escrow</button>
+      <a href="{% url 'dashboard:index' %}" class="btn btn--ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

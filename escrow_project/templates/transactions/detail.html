@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ txn.reference }}{% endblock %}
+{% block page_title %}Transaction {{ txn.reference }}{% endblock %}
+{% block content %}
+
+<!-- Status Timeline -->
+<div class="timeline-bar">
+  {% for step in steps %}
+  {% with idx=forloop.counter0 %}
+  <div class="timeline-step
+    {% if txn.status == step %}timeline-step--active
+    {% elif txn.status_index > idx %}timeline-step--done
+    {% else %}timeline-step--pending{% endif %}">
+    <div class="step-dot"></div>
+    <span class="step-label">{{ step|title|cut:"_" }}</span>
+  </div>
+  {% if not forloop.last %}
+  <div class="timeline-connector {% if txn.status_index > idx %}connector--done{% endif %}"></div>
+  {% endif %}
+  {% endwith %}
+  {% endfor %}
+</div>
+
+<div class="detail-grid">
+  <!-- Transaction Summary -->
+  <div class="card">
+    <h3 class="card-heading">Transaction Summary</h3>
+    <dl class="detail-list">
+      <dt>Reference</dt><dd><code class="mono">{{ txn.reference }}</code></dd>
+      <dt>Title</dt><dd>{{ txn.title }}</dd>
+      <dt>Description</dt><dd>{{ txn.description }}</dd>
+      <dt>Amount</dt><dd class="amount--large">&#8358;{{ txn.amount|floatformat:2 }}</dd>
+      <dt>Currency</dt><dd>{{ txn.currency }}</dd>
+      <dt>Buyer</dt><dd>{{ txn.buyer.full_name|default:txn.buyer.email }}</dd>
+      <dt>Seller</dt><dd>{{ txn.seller.full_name|default:txn.seller.email }}</dd>
+      <dt>Delivery Deadline</dt><dd>{{ txn.delivery_deadline|date:"F j, Y, g:i A" }}</dd>
+      <dt>Status</dt><dd><span class="status-badge status--{{ txn.status|lower }}">{{ txn.get_status_display }}</span></dd>
+      {% if txn.completed_at %}
+      <dt>Completed</dt><dd>{{ txn.completed_at|date:"F j, Y, g:i A" }}</dd>
+      {% endif %}
+    </dl>
+  </div>
+
+  <!-- Escrow Status -->
+  {% if escrow %}
+  <div class="card">
+    <h3 class="card-heading">Escrow Status</h3>
+    <dl class="detail-list">
+      <dt>Held Amount</dt><dd class="amount--large">&#8358;{{ escrow.held_amount|floatformat:2 }}</dd>
+      <dt>Status</dt><dd><span class="escrow-badge escrow--{{ escrow.release_status|lower }}">{{ escrow.get_release_status_display }}</span></dd>
+      <dt>Held Since</dt><dd>{{ escrow.held_at|date:"F j, Y, g:i A" }}</dd>
+      {% if escrow.released_at %}
+      <dt>Released At</dt><dd>{{ escrow.released_at|date:"F j, Y, g:i A" }}</dd>
+      {% endif %}
+    </dl>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Action Buttons -->
+<div class="card action-card">
+  <h3 class="card-heading">Actions</h3>
+  <div class="action-buttons">
+    {% if txn.status == 'IN_ESCROW' and user == txn.seller %}
+    <form method="post" action="{% url 'transactions:mark_delivered' uuid=txn.transaction_id %}">
+      {% csrf_token %}
+      <button class="btn btn--primary">Mark as Delivered</button>
+    </form>
+    {% endif %}
+
+    {% if txn.status == 'DELIVERED' and user == txn.buyer %}
+    <form method="post" action="{% url 'transactions:confirm_receipt' uuid=txn.transaction_id %}">
+      {% csrf_token %}
+      <button class="btn btn--primary">Confirm Receipt</button>
+    </form>
+    {% endif %}
+
+    {% if txn.status == 'IN_ESCROW' or txn.status == 'DELIVERED' %}
+      {% if user == txn.buyer or user == txn.seller %}
+    <a href="{% url 'disputes:raise' uuid=txn.transaction_id %}" class="btn btn--danger">Raise Dispute</a>
+      {% endif %}
+    {% endif %}
+
+    {% if txn.status == 'PENDING' %}
+    <form method="post" action="{% url 'transactions:cancel' uuid=txn.transaction_id %}">
+      {% csrf_token %}
+      <button class="btn btn--ghost">Cancel Transaction</button>
+    </form>
+    {% endif %}
+
+    {% if user.role == 'ADMIN' or user.is_superuser %}
+      {% if txn.status not in 'COMPLETED,REFUNDED,CANCELLED' %}
+      <form method="post" action="{% url 'escrow:release' uuid=txn.transaction_id %}" style="display:inline">
+        {% csrf_token %}
+        <button class="btn btn--primary">Release Funds (Admin)</button>
+      </form>
+      <form method="post" action="{% url 'escrow:refund' uuid=txn.transaction_id %}" style="display:inline">
+        {% csrf_token %}
+        <button class="btn btn--danger">Issue Refund (Admin)</button>
+      </form>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- Disputes -->
+{% if disputes %}
+<div class="card">
+  <h3 class="card-heading">Disputes</h3>
+  {% for d in disputes %}
+  <div class="dispute-summary">
+    <span class="status-badge status--{{ d.status|lower }}">{{ d.get_status_display }}</span>
+    <p style="margin:.5rem 0;font-size:.84rem;color:var(--grey-600);">{{ d.reason|truncatechars:120 }}</p>
+    <a href="{% url 'disputes:detail' uuid=d.dispute_id %}" class="btn btn--outline btn--sm">View Dispute</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Audit Log -->
+{% if logs %}
+<div class="card">
+  <h3 class="card-heading">Escrow Audit Log</h3>
+  <div class="audit-log">
+    {% for log in logs %}
+    <div class="log-entry">
+      <span class="log-time">{{ log.timestamp|date:"M j, Y, g:i A" }}</span>
+      <span class="log-action">{{ log.action }}</span>
+      <span class="log-by">{{ log.performed_by.email }}</span>
+      {% if log.notes %}<span class="log-notes">{{ log.notes }}</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
