@@ -5,6 +5,9 @@
 <div class="card">
   <div class="card-header">
     <h3 class="card-title">Transactions</h3>
+    {% if request.user.role == 'BUYER' %}
+    <a href="{% url 'transactions:create' %}" class="btn btn--primary btn--sm">New Transaction</a>
+    {% endif %}
     <form class="filter-form" method="get">
       <input type="text" name="q" value="{{ search|default:'' }}" placeholder="Search..." class="search-input">
       <select name="status" class="select-input">
