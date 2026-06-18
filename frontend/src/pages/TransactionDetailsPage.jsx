@@ -3,12 +3,15 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import StatusBadge from "../components/StatusBadge";
+import { useNotifications } from "../context/NotificationContext";
 
 export default function TransactionDetailsPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { refresh: refreshNotifications } = useNotifications();
   const [transaction, setTransaction] = useState(null);
   const [error, setError] = useState("");
+  const [cancelMsg, setCancelMsg] = useState("");
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
 
@@ -51,6 +54,18 @@ export default function TransactionDetailsPage() {
   const releaseMilestone = async (milestoneId) => {
     await api.patch(`/milestones/${milestoneId}/release`);
     fetchDetails();
+  };
+
+  const cancelTransaction = async () => {
+    if (!window.confirm("Cancel this transaction? This cannot be undone.")) return;
+    try {
+      const { data } = await api.patch(`/transactions/${id}/cancel`);
+      setCancelMsg(data.message);
+      refreshNotifications();
+      fetchDetails();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to cancel transaction");
+    }
   };
 
   const submitReview = async () => {
@@ -146,9 +161,27 @@ export default function TransactionDetailsPage() {
         </div>
       </article>
 
-      <Link className="primary-link" to="/disputes">
-        Open/View Disputes
-      </Link>
+      {cancelMsg && (
+        <article className="card" style={{ borderLeft: "4px solid #c9a84c" }}>
+          <p style={{ fontWeight: 600 }}>{cancelMsg}</p>
+        </article>
+      )}
+
+      {transaction.status !== "Cancelled" && transaction.status !== "Completed" && (isBuyer || isSeller) && (
+        <article className="card">
+          <h2>Cancel Transaction</h2>
+          <p style={{ marginBottom: "0.8rem", color: "#6b7c99", fontSize: "0.9rem" }}>
+            This will cancel the transaction and notify the other party.
+          </p>
+          <button
+            type="button"
+            onClick={cancelTransaction}
+            style={{ background: "#b91c1c", borderRadius: "8px" }}
+          >
+            Cancel Transaction
+          </button>
+        </article>
+      )}
     </section>
   );
 }

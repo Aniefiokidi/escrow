@@ -10,6 +10,7 @@ import milestoneRoutes from "./routes/milestoneRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import disputeRoutes from "./routes/disputeRoutes.js";
 import trustRoutes from "./routes/trustRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
@@ -35,6 +36,7 @@ app.use("/api/milestones", milestoneRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/disputes", disputeRoutes);
 app.use("/api/trust", trustRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

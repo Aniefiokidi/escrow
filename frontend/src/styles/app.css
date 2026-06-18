@@ -8,6 +8,95 @@
   --accent-2: #0db57b;
   --danger: #df3c5f;
   --line: #d5e2f3;
+
+  /* Design system — matches Django/Vercel */
+  --navy:       #0D1B2A;
+  --navy-light: #1F3347;
+  --gold:       #C9A84C;
+  --gold-dark:  #A8882E;
+  --grey-200:   #DDE1E8;
+  --grey-300:   #C8CDD7;
+  --grey-500:   #6B7685;
+  --grey-700:   #374151;
+  --grey-800:   #1F2937;
+  --radius-sm:  4px;
+  --radius-lg:  12px;
+  --border:     1px solid #DDE1E8;
+  --font:       'Inter', system-ui, -apple-system, sans-serif;
+  --transition: 140ms ease;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  transition: all var(--transition);
+  white-space: nowrap;
+  font-family: var(--font);
+  line-height: 1.4;
+  letter-spacing: .01em;
+}
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.btn--primary {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+.btn--primary:hover { background: var(--navy-light); border-color: var(--navy-light); }
+
+.btn--full { width: 100%; justify-content: center; }
+.btn--lg   { padding: .65rem 1.4rem; font-size: .9rem; }
+
+/* Form groups */
+.form-group { margin-bottom: 1.1rem; }
+.form-group label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--grey-700);
+  margin-bottom: .35rem;
+  letter-spacing: .01em;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: .55rem .85rem;
+  border: 1.5px solid var(--grey-300);
+  border-radius: var(--radius-sm);
+  font-size: .86rem;
+  font-family: var(--font);
+  color: var(--grey-800);
+  background: #fff;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  line-height: 1.5;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(13,27,42,.07);
+}
+.form-group input::placeholder { color: #9AA3B2; }
+
+.form-error {
+  padding: .6rem .9rem;
+  background: #FEF2F2;
+  color: #7f1d1d;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-sm);
+  font-size: .83rem;
+  margin-bottom: 1rem;
 }
 
 * {
@@ -218,6 +307,108 @@ textarea {
   border-color: #ef9fb4;
 }
 
+/* ── Notification bell ── */
+.notif-wrap {
+  position: relative;
+}
+
+.notif-bell-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  position: relative;
+  padding: 0.2rem 0.4rem;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+.notif-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  background: #fff;
+  border: 1px solid #d5e2f3;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 100;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notif-dropdown-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eef0f4;
+  font-size: 0.85rem;
+}
+
+.notif-mark-all {
+  background: none;
+  border: none;
+  color: #c9a84c;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.notif-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eef0f4;
+  cursor: pointer;
+  transition: background 120ms;
+}
+
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: #f7f8fa; }
+
+.notif-item--unread {
+  background: #fffdf5;
+  border-left: 3px solid #c9a84c;
+}
+
+.notif-item--unread:hover { background: #fdf8e8; }
+
+.notif-msg {
+  font-size: 0.83rem;
+  color: #1f2937;
+  margin: 0 0 0.25rem;
+  line-height: 1.5;
+}
+
+.notif-time {
+  font-size: 0.72rem;
+  color: #9aa3b2;
+}
+
+.notif-empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: #9aa3b2;
+  font-size: 0.85rem;
+}
+
 .auth-wrap {
   min-height: 100vh;
   display: grid;
@@ -227,6 +418,90 @@ textarea {
 
 .auth-card {
   width: min(460px, 100%);
+}
+
+/* ── Auth layout (matches Vercel/Django design exactly) ── */
+.auth-layout {
+  min-height: 100vh;
+  background: #0D1B2A;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: 2rem;
+  text-decoration: none;
+}
+
+.auth-brand-icon {
+  color: #C9A84C;
+  display: flex;
+}
+
+.auth-brand-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.brand-main   { color: #FFFFFF; }
+.brand-accent { color: #C9A84C; }
+
+.auth-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 2.5rem 2.25rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.09);
+  border-top: 3px solid #C9A84C;
+}
+
+.auth-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0D1B2A;
+  margin-bottom: .3rem;
+  letter-spacing: -.02em;
+}
+
+.auth-sub {
+  color: #6B7685;
+  font-size: .83rem;
+  margin-bottom: 1.75rem;
+  line-height: 1.5;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-link {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: .82rem;
+  color: #6B7685;
+  padding-top: 1.25rem;
+  border-top: 1px solid #DDE1E8;
+}
+
+.auth-link a {
+  color: #A8882E;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link a:hover { text-decoration: underline; }
+
+@media (max-width: 600px) {
+  .auth-card { padding: 1.75rem 1.5rem; }
 }
 
 .error-msg,

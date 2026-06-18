@@ -1,6 +1,7 @@
 import Milestone from "../models/Milestone.js";
 import Transaction from "../models/Transaction.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 import asyncHandler from "../middleware/asyncHandler.js";
 import { recalculateTrustScore } from "../services/trustScoreService.js";
 
@@ -156,4 +157,53 @@ export const updateTransactionStatus = asyncHandler(async (req, res) => {
 
   await transaction.save();
   res.json(transaction);
+});
+
+export const cancelTransaction = asyncHandler(async (req, res) => {
+  const transaction = await Transaction.findById(req.params.id)
+    .populate("buyer", "name email")
+    .populate("seller", "name email");
+
+  if (!transaction) {
+    res.status(404);
+    throw new Error("Transaction not found");
+  }
+
+  const isBuyer = String(transaction.buyer._id) === String(req.user._id);
+  const isSeller = String(transaction.seller._id) === String(req.user._id);
+
+  if (!isBuyer && !isSeller) {
+    res.status(403);
+    throw new Error("Only the buyer or seller can cancel this transaction");
+  }
+
+  if (transaction.status === "Cancelled") {
+    res.status(400);
+    throw new Error("Transaction is already cancelled");
+  }
+
+  transaction.status = "Cancelled";
+  await transaction.save();
+
+  const cancellerRole = isBuyer ? "buyer" : "seller";
+  const cancellerName = isBuyer ? transaction.buyer.name : transaction.seller.name;
+  const cancellerEmail = isBuyer ? transaction.buyer.email : transaction.seller.email;
+  const otherParty = isBuyer ? transaction.seller : transaction.buyer;
+  const otherRole = isBuyer ? "seller" : "buyer";
+
+  await Notification.create({
+    user: otherParty._id,
+    message: `Transaction "${transaction.title}" was cancelled by the ${cancellerRole}. Contact ${cancellerName} (${cancellerEmail}) for more information.`,
+    type: "cancelled",
+    relatedTransaction: transaction._id
+  });
+
+  await Notification.create({
+    user: req.user._id,
+    message: `You cancelled transaction "${transaction.title}". The ${otherRole} (${otherParty.name}) has been notified.`,
+    type: "info",
+    relatedTransaction: transaction._id
+  });
+
+  res.json({ message: "Transaction cancelled successfully", transaction });
 });

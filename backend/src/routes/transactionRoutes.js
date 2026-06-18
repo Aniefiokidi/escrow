@@ -4,7 +4,8 @@ import {
   getMyTransactions,
   getTransactionById,
   respondToTransaction,
-  updateTransactionStatus
+  updateTransactionStatus,
+  cancelTransaction
 } from "../controllers/transactionController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -15,5 +16,6 @@ router.route("/").post(createTransaction).get(getMyTransactions);
 router.get("/:id", getTransactionById);
 router.patch("/:id/respond", respondToTransaction);
 router.patch("/:id/status", updateTransactionStatus);
+router.patch("/:id/cancel", cancelTransaction);
 
 export default router;

@@ -9,7 +9,7 @@ const transactionSchema = new mongoose.Schema(
     seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     status: {
       type: String,
-      enum: ["Pending", "In Escrow", "In Progress", "Delivered", "Completed", "Disputed"],
+      enum: ["Pending", "In Escrow", "In Progress", "Delivered", "Completed", "Disputed", "Cancelled"],
       default: "Pending"
     },
     escrowHeld: { type: Boolean, default: false },
